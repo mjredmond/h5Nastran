@@ -1,0 +1,119 @@
+"""
+Copyright (C) Michael James Redmond, Jr - All Rights Reserved
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+Written by Michael James Redmond, Jr.
+"""
+from __future__ import print_function, absolute_import
+from six import iteritems, itervalues
+from six.moves import range
+
+
+def convert_data(data):
+    try:
+        return int(data)
+    except ValueError:
+        try:
+            return float(data)
+        except ValueError:
+            return data.strip()
+
+
+class HeaderData(object):
+    def __init__(self):
+        self.title = ''
+        self.subtitle = ''
+        self.label = ''
+        self._subcase_id = ''
+        self._results_type = ''
+        self.real_output = False
+        self.other = {}
+        self.lineno = -1
+
+    def clear(self):
+        self.title = ''
+        self.subtitle = ''
+        self.label = ''
+        self._subcase_id = ''
+        self._results_type = ''
+        self.real_output = False
+        self.other.clear()
+
+    def set_data(self, line):
+        if line.startswith('$TITLE'):
+            self.title = line.split('=')[1].strip()
+        elif line.startswith('$SUBTITLE'):
+            self.subtitle = line.split('=')[1].strip()
+        elif line.startswith('$LABEL'):
+            self.label = line.split('=')[1].strip()
+        elif line.startswith('$SUBCASE ID'):
+            self._subcase_id = line.split('=')[1].strip()
+        elif line.startswith('$REAL OUTPUT'):
+            self.real_output = True
+        elif '=' in line:
+            tmp = line[1:].split('=')
+            left = tmp[0].strip()
+            right = tmp[1].strip()
+            self.other[left] = ' '.join(right.split())
+        else:
+            self._results_type = ' '.join(line[1:].strip().split())
+
+    def __str__(self):
+        return 'LINENO=%d, TITLE=%s, SUBTITLE=%s, LABEL=%s, SUBCASE ID=%s, Results Type=%s, REAL OUTPUT=%s, OTHER=%s' % (
+            self.lineno, self.title, self.subtitle, self.label, self._subcase_id, self._results_type, str(self.real_output),
+            str(self.other)
+        )
+
+    @property
+    def results_type(self):
+        try:
+            results_type = '%s %s' % (self._results_type, self.other['ELEMENT TYPE'])
+        except KeyError:
+            results_type = self._results_type
+
+        if self.real_output:
+            return '%s REAL OUTPUT' % results_type
+        else:
+            return '%s COMPLEX' % results_type
+
+    @property
+    def subcase_id(self):
+        try:
+            return '%s Load Factor=%s' % (self._subcase_id, self.other['LOAD FACTOR'])
+        except KeyError:
+            return self._subcase_id
+
+
+class TableData(object):
+    def __init__(self, table_data):
+        self.header = HeaderData()
+        self.data = []
+
+        self._load_data(table_data)
+
+    def _load_data(self, table_data):
+        self.header.clear()
+        self.data.clear()
+
+        for line in table_data:
+            if chr(line[0]) == '$':
+                self.header.set_data(line.decode())
+                continue
+
+            _data = [convert_data(line[:10]), convert_data(line[10:18])]
+
+            i1 = 18
+            i2 = 36
+
+            line_len = len(line)
+
+            while True:
+                if i1 >= line_len:
+                    break
+
+                _data.append(convert_data(line[i1:i2]))
+
+                i1 = i2
+                i2 += 18
+
+            self.data.append(_data)
