@@ -18,10 +18,10 @@ from ...abstract_table import AbstractTable
 from ._shell import ShellTable
 
 
-@register_table('ELEMENT FORCES 74 TRIA3 REAL OUTPUT MATERIAL')
-@register_table('ELEMENT FORCES 74 TRIA3 REAL OUTPUT')
+@register_table('ELEMENT FORCES 33 QUAD4 REAL OUTPUT MATERIAL')
+@register_table('ELEMENT FORCES 33 QUAD4 REAL OUTPUT')
 class _Table_0001(ShellTable):
 
     group = '/NASTRAN/RESULT/ELEMENTAL/FORCE'
-    table_id = 'TRIA3'
+    table_id = 'QUAD4'
     table_path = '%s/%s' % (group, table_id)
