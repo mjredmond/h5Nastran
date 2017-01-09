@@ -16,6 +16,8 @@ import tables
 
 from ..abstract_table import AbstractTable
 
+import numpy as np
+
 
 @register_table('GRID POINT FORCE BALANCE REAL OUTPUT')
 class _Table_0001(AbstractTable):
@@ -47,10 +49,7 @@ class _Table_0001(AbstractTable):
         table_data = table_data.data
 
         eids = {
-            b'F-OF-SPC': -1,
-            b'F-OF-MPC': -2,
-            b'APP-LOAD': -3,
-            b'*TOTALS*': -4
+            b'': 0
         }
 
         eids_get = eids.get
@@ -64,7 +63,7 @@ class _Table_0001(AbstractTable):
 
             elname = data_i[3]
 
-            eid = eids_get(elname, data_i[2])
+            eid = eids_get(data_i[2], data_i[2])
 
             table_row['EID'] = eid
             table_row['ELNAME'] = elname
@@ -79,3 +78,33 @@ class _Table_0001(AbstractTable):
             table_row.append()
 
         h5f.flush()
+
+    @classmethod
+    def _write_private_index(cls, h5f):
+        table = cls.get_table(h5f)
+
+        # noinspection PyProtectedMember
+        col1 = table.cols._f_col(cls.index_columns[0])[:]
+
+        if col1.size == 0:
+            return
+
+        col2 = table.cols._f_col(cls.index_columns[1])[:]
+        col3 = table.cols._f_col('ELNAME')[:]
+
+        data = np.empty((col1.size, 2), dtype=col1.dtype)
+        data[:, 0] = col1
+
+        eids = {
+            b'F-OF-SPC': -1,
+            b'F-OF-MPC': -2,
+            b'APP-LOAD': -3,
+            b'*TOTALS*': -4
+        }
+
+        eids_get = eids.get
+
+        for i in range(col3.shape[0]):
+            data[i, 1] = eids_get(col3[i].strip(), col2[i])
+
+        h5f.create_array('/PRIVATE/INDEX' + cls.group, cls.table_id, obj=data, title=cls.results_type, createparents=True)

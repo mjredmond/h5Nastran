@@ -10,6 +10,7 @@ from six.moves import range
 
 
 def convert_data(data):
+    return data.strip()
     try:
         return int(data)
     except ValueError:
@@ -100,7 +101,8 @@ class TableData(object):
                 self.header.set_data(line.decode())
                 continue
 
-            _data = [convert_data(line[:10]), convert_data(line[10:18])]
+            # _data = [convert_data(line[:10]), convert_data(line[10:18])]
+            _data = [line[:10].strip(), line[10:18].strip()]
 
             i1 = 18
             i2 = 36
@@ -111,7 +113,8 @@ class TableData(object):
                 if i1 >= line_len:
                     break
 
-                _data.append(convert_data(line[i1:i2]))
+                # _data.append(convert_data(line[i1:i2]))
+                _data.append(line[i1:i2].strip())
 
                 i1 = i2
                 i2 += 18

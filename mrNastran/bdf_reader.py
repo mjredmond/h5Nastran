@@ -15,11 +15,23 @@ import os
 from .utilities import convert_field, chunk_string
 
 
+class MyList(list):
+    def get(self, index, default=None):
+        try:
+            tmp = self.__getitem__(index)
+            if tmp is None:
+                return default
+            else:
+                return tmp
+        except IndexError:
+            return default
+
+
 class BulkData(object):
     def __init__(self):
         self.filename = ''
         self.line_number = 0
-        self.data = []
+        self.data = MyList()
         self.counter = 0
 
     def convert_data(self):

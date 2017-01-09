@@ -5,15 +5,14 @@ Proprietary and confidential
 Written by Michael James Redmond, Jr.
 """
 from __future__ import print_function, absolute_import
+from six import iteritems, itervalues
+from six.moves import range
 
-from nastran_database import NastranDatabase
+from ._main import get_table
 
+from . import node, coordinate, element, property
 
-pchfile = r'./files/wing_punchandpost.pch'
-bdffile = r'./files/wing.bdf'
-
-
-db = NastranDatabase('test.h5', 'w')
-
-
-db.read(bdffile, pchfile)
+del node
+del coordinate
+del element
+del property

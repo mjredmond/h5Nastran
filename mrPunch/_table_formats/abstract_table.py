@@ -54,6 +54,11 @@ class AbstractTable(object):
 
     @classmethod
     def finalize(cls, h5f):
+        cls._write_index(h5f)
+        cls._write_private_index(h5f)
+
+    @classmethod
+    def _write_private_index(cls, h5f):
         table = cls.get_table(h5f)
 
         # noinspection PyProtectedMember
@@ -76,7 +81,12 @@ class AbstractTable(object):
         if data.size == 0:
             return
 
-        h5f.create_array('/TABLE_INDEX' + cls.group, cls.table_id, obj=data, title=cls.results_type, createparents=True)
+        h5f.create_array('/PRIVATE/INDEX' + cls.group, cls.table_id, obj=data, title=cls.results_type, createparents=True)
+
+    @classmethod
+    def _write_index(cls, h5f):
+
+        table = cls.get_table(h5f)
 
         # noinspection PyProtectedMember
         domain_id = table.cols._f_col('DOMAIN_ID')[:]
