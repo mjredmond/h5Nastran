@@ -11,9 +11,22 @@ from six.moves import range
 from ._file_reader import FileReader
 from ._table_data import TableData
 
+from multiprocessing import Process, Manager, cpu_count
+
 
 def _default_callback(table_data):
     print(table_data.header)
+
+
+def _worker(data, d):
+    try:
+        tmp = TableData(data)
+    except TypeError:
+        d['error'] = True
+        return
+
+    d['error'] = False
+    d['table_data'] = tmp.serialize()
 
 
 class PunchReader(object):
@@ -33,17 +46,65 @@ class PunchReader(object):
         self.file.close()
 
     def read(self):
+
+        _count = 0
+
+        _process = []
+        _data = []
+        _ln = []
+
+        manager = Manager()
+
+        max_count = cpu_count() - 1
+
         while not self._done_reading:
             table_data, line_number = self._read_table()
 
-            try:
-                table_data = TableData(table_data)
-            except TypeError:
+            print(self.file.status())
+
+            _ln.append(line_number)
+            _data.append(manager.dict())
+
+            d = _data[-1]
+
+            p = Process(target=_worker, args=(table_data, d))
+            p.start()
+
+            _process.append(p)
+
+            _count += 1
+
+            breakout = False
+            if _count == max_count:
+                for i in range(len(_process)):
+                    _process[i].join()
+                    d = _data[i]
+
+                    if d['error'] is True:
+                        breakout = True
+                        continue
+
+                    td = TableData()
+                    td.load(d['table_data'])
+                    self._callback(td)
+
+                _process.clear()
+                _data.clear()
+                _count = 0
+
+            if breakout:
                 break
 
-            table_data.header.lineno = line_number
+        for i in range(len(_process)):
+            _process[i].join()
+            d = _data[i]
 
-            self._callback(table_data)
+            if d['error'] is True:
+                continue
+
+            td = TableData()
+            td.load(d['table_data'])
+            self._callback(td)
 
     def _read_table(self):
 
