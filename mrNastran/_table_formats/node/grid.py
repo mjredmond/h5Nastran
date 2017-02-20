@@ -61,12 +61,15 @@ class _Table_0001(AbstractTable):
 
             _data_i = [data_i[1], data_i[2], data_i[3:6], data_i_get(7), data_i_get(8), data_i_get(9)]
 
+            def _get_data(data_):
+                return data_ if data_ is not None else 0
+
             table_row['ID'] = _data_i[0]
             table_row['CP'] = _data_i[1]
             table_row['X'] = _data_i[2]
-            table_row['CD'] = _data_i[3] if _data_i[3] is not None else 0
-            table_row['PS'] = _data_i[4] if _data_i[4] is not None else 0
-            table_row['SEID'] = _data_i[5] if _data_i[5] is not None else 0
+            table_row['CD'] = _get_data(_data_i[3])
+            table_row['PS'] = _get_data(_data_i[4])
+            table_row['SEID'] = _get_data(_data_i[5])
             table_row['DOMAIN_ID'] = domain
 
             table_row.append()
