@@ -1,0 +1,26 @@
+"""
+Copyright (C) Michael James Redmond, Jr - All Rights Reserved
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+Written by Michael James Redmond, Jr.
+"""
+from __future__ import print_function, absolute_import
+from six import iteritems, iterkeys, itervalues
+from six.moves import range
+
+import tables as tb
+
+from ._cards import get_card
+
+
+class BDFData(object):
+    def __init__(self):
+        self.grid = get_card('GRID')(self)
+        self.cord = get_card('CORD')(self)
+
+    def read_h5(self, h5f):
+        if isinstance(h5f, str):
+            h5f = tb.open_file(h5f, 'r')
+
+        self.grid.read_h5(h5f)
+        self.cord.read_h5(h5f)

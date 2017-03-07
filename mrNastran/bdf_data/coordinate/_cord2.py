@@ -9,11 +9,28 @@ from six import iteritems, iterkeys, itervalues
 from six.moves import range
 
 import numpy as np
+import tables
+
+from .._abstract_table import AbstractTable
+
 
 norm = np.linalg.norm
 
 
-class CORD2(object):
+class CORD2Table(AbstractTable):
+
+    group = '/NASTRAN/INPUT/COORDINATE'
+    table_id = ''
+    table_path = ''
+
+    # class Format(IsDescription):
+    #     CID = Int64Col(pos=1)
+    #     RID = Int64Col(pos=2)
+    #     A = Float64Col(shape=3, pos=3)
+    #     B = Float64Col(shape=3, pos=4)
+    #     C = Float64Col(shape=3, pos=5)
+    #     DOMAIN_ID = Int64Col(pos=6)
+
     dtype = np.dtype([
         ('CID', np.int64),
         ('RID', np.int64),
@@ -23,13 +40,55 @@ class CORD2(object):
         ('DOMAIN_ID', np.int64)
     ])
 
+    Format = tables.descr_from_dtype(dtype)[0]
+
+    @classmethod
+    def _write_data(cls, h5f, table_data, h5table):
+        table_row = h5table.row
+
+        domain = cls.domain_count
+
+        ids = sorted(table_data.keys())
+
+        for _id in ids:
+
+            # TODO: what to do about multiple definitions?
+            data_i = table_data[_id][0].data
+            data_i_get = data_i.get
+
+            table_row['CID'] = data_i[1]
+            table_row['RID'] = data_i_get(2, 0)
+            table_row['A'] = data_i[3:6]
+            table_row['B'] = data_i[6:9]
+            table_row['C'] = data_i[9:12]
+            table_row['DOMAIN_ID'] = domain
+
+            table_row.append()
+
+        h5f.flush()
+
+    @classmethod
+    def copy(cls):
+        class _COPY(cls):
+            pass
+
+        return _COPY
+
+
+class CORD2(object):
+
+    table_reader = CORD2Table
+    dtype = CORD2Table.dtype
+
     _dtype = np.dtype([
         ('V1', np.float64, (3,)),
         ('V2', np.float64, (3,)),
         ('V3', np.float64, (3,))
     ])
 
-    def __init__(self):
+    def __init__(self, bdf_data):
+        self.bdf_data = bdf_data
+
         self.data = np.zeros(0, dtype=self.dtype)
         self._data = np.zeros(0, dtype=self._dtype)
         self.index = {}
@@ -37,6 +96,9 @@ class CORD2(object):
         self._current_index = -1
         self._current_data_1 = None
         self._current_data_2 = None
+
+    def read_h5(self, h5f):
+        self.set_data(self.table_reader.read(h5f))
 
     def resize(self, new_size):
         self._current_index = -1
@@ -47,6 +109,9 @@ class CORD2(object):
         self._data.resize(new_size)
 
     def set_data(self, data):
+        if data is None:
+            return
+
         self.resize(data.size)
 
         np.copyto(self.data, data)
@@ -110,3 +175,4 @@ class CORD2(object):
             return xp
 
         return self.to_basic_coord(rid, xp)
+

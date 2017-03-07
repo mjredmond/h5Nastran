@@ -60,7 +60,7 @@ class PunchReader(object):
         while not self._done_reading:
             table_data, line_number = self._read_table()
 
-            print(self.file.status())
+            # print(self.file.status())
 
             _ln.append(line_number)
             _data.append(manager.dict())

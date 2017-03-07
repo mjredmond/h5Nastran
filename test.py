@@ -10,10 +10,12 @@ from nastran_database import NastranDatabase
 
 
 pchfile = r'./files/wing_punchandpost.pch'
-bdffile = r'./files/wing.bdf'
+bdffile = r'./files/W1000BOstat.bdf'
 
 
-db = NastranDatabase('test.h5', 'w')
+db = NastranDatabase(r'./files/W1000BOstat.h5', 'w')
 
 
-db.read(bdffile, pchfile)
+db.read(bdffile)
+
+

@@ -15,7 +15,8 @@ import numpy as np
 from mrPunch._table_formats import get_table as get_pch_table
 from mrPunch._punch_reader import PunchReader
 from mrNastran.bdf_reader import BDFReader
-from mrNastran._table_formats import get_table as get_bdf_table
+# from mrNastran._table_formats import get_table as get_bdf_table
+from mrNastran.bdf_data import get_table as get_bdf_table
 
 
 class NastranDatabase(object):
@@ -37,9 +38,11 @@ class NastranDatabase(object):
 
         self._tables.add(table_format)
 
-    def read(self, bdffile, pchfile):
+    def read(self, bdffile, pchfile=None):
         self._read_bdf(bdffile)
-        self._read_pch(pchfile)
+
+        if pchfile is not None:
+            self._read_pch(pchfile)
 
     def _read_bdf(self, bdffile):
         reader = BDFReader(bdffile)
@@ -53,8 +56,8 @@ class NastranDatabase(object):
 
         for card in cards:
 
-            if card != 'GRID':
-                continue
+            # if card != 'GRID':
+            #     continue
 
             table = get_bdf_table(card)
 

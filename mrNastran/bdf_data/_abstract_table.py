@@ -21,17 +21,15 @@ class AbstractTable(object):
 
     domain_count = 1
 
-    class Format(object):
-        def __init__(self):
-            raise NotImplementedError
+    dtype = None
 
-    class FillFormat(object):
+    class Format(object):
         def __init__(self):
             raise NotImplementedError
 
     @classmethod
     def write_data(cls, h5f, table_data):
-        cls._write_data(h5f, table_data, (cls.get_data_table(h5f), cls.get_data_fill_table(h5f)))
+        cls._write_data(h5f, table_data, cls.get_data_table(h5f))
 
     @classmethod
     def _write_data(cls, h5f, table_data, h5table):
@@ -42,17 +40,20 @@ class AbstractTable(object):
         try:
             return h5f.get_node(cls.table_path)
         except tables.NoSuchNodeError:
+            # print(cls.Format)
             return h5f.create_table(cls.group, cls.table_id, cls.Format, cls.table_id,
-                                    expectedrows=expected_rows, createparents=True)
-
-    @classmethod
-    def get_data_fill_table(cls, h5f, expected_rows=1000000):
-        try:
-            return h5f.get_node('/PRIVATE/FILL' + cls.table_path)
-        except tables.NoSuchNodeError:
-            return h5f.create_table('/PRIVATE/FILL' + cls.group, cls.table_id, cls.FillFormat, cls.table_id,
                                     expectedrows=expected_rows, createparents=True)
 
     @classmethod
     def finalize(cls, h5f):
         pass
+
+    @classmethod
+    def read(cls, h5f):
+        try:
+            table = h5f.get_node(cls.table_path)
+        except tables.NoSuchNodeError:
+            return None
+
+        return table.read()
+

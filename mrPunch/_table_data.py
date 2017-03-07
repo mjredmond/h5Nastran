@@ -84,13 +84,27 @@ class HeaderData(object):
         except KeyError:
             return self._subcase_id
 
+    def serialize(self):
+        return self.title, self.subtitle, self.label, self._subcase_id, self._results_type, self.real_output, dict(self.other), self.lineno
+
+    def load(self, data):
+        self.title = data[0]
+        self.subtitle = data[1]
+        self.label = data[2]
+        self._subcase_id = data[3]
+        self._results_type = data[4]
+        self.real_output = data[5]
+        self.other = dict(data[6])
+        self.lineno = data[7]
+
 
 class TableData(object):
-    def __init__(self, table_data):
+    def __init__(self, table_data=None):
         self.header = HeaderData()
         self.data = []
 
-        self._load_data(table_data)
+        if table_data is not None:
+            self._load_data(table_data)
 
     def _load_data(self, table_data):
         self.header.clear()
@@ -120,3 +134,11 @@ class TableData(object):
                 i2 += 18
 
             self.data.append(_data)
+
+    def serialize(self):
+        return list(self.data), self.header.serialize()
+
+    def load(self, data):
+        self.data.clear()
+        self.data.extend(data[0])
+        self.header.load(data[1])
