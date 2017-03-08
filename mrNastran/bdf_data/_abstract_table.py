@@ -21,11 +21,8 @@ class AbstractTable(object):
 
     domain_count = 1
 
-    dtype = None
-
-    class Format(object):
-        def __init__(self):
-            raise NotImplementedError
+    dtype = None  # numpy dtype for card data
+    Format = None  # pytables description for table
 
     @classmethod
     def write_data(cls, h5f, table_data):

@@ -18,21 +18,23 @@ from ._element import Element
 import numpy as np
 
 
-class Cquad4Table(AbstractTable):
+class CbarTable(AbstractTable):
 
     group = '/NASTRAN/INPUT/ELEMENT'
-    table_id = 'CQUAD4'
+    table_id = 'CBAR'
     table_path = '%s/%s' % (group, table_id)
 
     dtype = np.dtype([
         ('EID', np.int64),
         ('PID', np.int64),
-        ('GRID', np.int64, (4,)),
-        ('THETA', np.float64),
-        ('MCID', np.int64),
-        ('ZOFFS', np.float64),
-        ('TFLAG', np.int64),
-        ('Ti', np.float64, (4,)),
+        ('GRID', np.int64, (2,)),
+        ('X', np.float64, (3,)),
+        ('G0', np.int64),
+        ('OFFT', 'S3'),
+        ('PA', np.int64),
+        ('PB', np.int64),
+        ('WA', np.float64, (3,)),
+        ('WB', np.float64, (3,)),
         ('DOMAIN_ID', np.int64)
     ])
 
@@ -56,32 +58,28 @@ class Cquad4Table(AbstractTable):
 
             table_row['EID'] = data_i[1]
             table_row['PID'] = data_i_get(2, data_i[1])
-            table_row['GRID'] = data_i[3:7]
+            table_row['GRID'] = data_i[3:5]
 
-            theta = data_i[7]
-            mcid = 0
+            tmp = data_i[5:8]
 
-            if isinstance(theta, int):
-                mcid = theta
-                theta = np.nan
-            elif theta is None:
-                theta = 0.
-                mcid = 0
+            if tmp.count(None) == 3:
+                table_row['G0'] = data_i[3]
+                table_row['X'] = 0.
+            elif isinstance(data_i[5], int):
+                table_row['G0'] = data_i[5]
+            else:
+                table_row['G0'] = -1
+                table_row['X'] = data_i[5:8]
 
-            table_row['THETA'] = theta
-            table_row['MCID'] = mcid
+            table_row['OFFT'] = data_i_get(8, '')
+            table_row['PA'] = data_i_get(9, 0)
+            table_row['PB'] = data_i_get(10, 0)
 
-            table_row['ZOFFS'] = data_i_get(8, 0.)
-            table_row['TFLAG'] = data_i_get(10, 0)
+            wa = (data_i_get(11, 0.), data_i_get(12, 0.), data_i_get(13, 0.))
+            wb = (data_i_get(14, 0.), data_i_get(15, 0.), data_i_get(16, 0.))
 
-            ti = [
-                data_i_get(11, 0.),
-                data_i_get(12, 0.),
-                data_i_get(13, 0.),
-                data_i_get(14, 0.)
-            ]
-
-            table_row['Ti'] = ti
+            table_row['WA'] = wa
+            table_row['WB'] = wb
 
             table_row['DOMAIN_ID'] = domain
 
@@ -91,6 +89,6 @@ class Cquad4Table(AbstractTable):
 
 
 @register_card
-class CQUAD4(Element):
-    table_reader = Cquad4Table
+class CBAR(Element):
+    table_reader = CbarTable
     dtype = table_reader.dtype

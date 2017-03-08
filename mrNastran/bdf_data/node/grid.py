@@ -15,7 +15,7 @@ from .._abstract_table import AbstractTable
 from .._cards import register_card
 
 
-class GRIDTable(AbstractTable):
+class GridTable(AbstractTable):
 
     group = '/NASTRAN/INPUT/NODE'
     table_id = 'GRID'
@@ -70,8 +70,8 @@ class GRIDTable(AbstractTable):
 @register_card
 class GRID(object):
 
-    table_reader = GRIDTable
-    dtype = GRIDTable.dtype
+    table_reader = GridTable
+    dtype = GridTable.dtype
 
     def __init__(self, bdf_data):
         self.bdf_data = bdf_data

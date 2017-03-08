@@ -12,24 +12,17 @@ import numpy as np
 import tables
 
 from .._abstract_table import AbstractTable
+from ._cord import Cord
 
 
 norm = np.linalg.norm
 
 
-class CORD2Table(AbstractTable):
+class Cord2Table(AbstractTable):
 
     group = '/NASTRAN/INPUT/COORDINATE'
     table_id = ''
     table_path = ''
-
-    # class Format(IsDescription):
-    #     CID = Int64Col(pos=1)
-    #     RID = Int64Col(pos=2)
-    #     A = Float64Col(shape=3, pos=3)
-    #     B = Float64Col(shape=3, pos=4)
-    #     C = Float64Col(shape=3, pos=5)
-    #     DOMAIN_ID = Int64Col(pos=6)
 
     dtype = np.dtype([
         ('CID', np.int64),
@@ -48,9 +41,11 @@ class CORD2Table(AbstractTable):
 
         domain = cls.domain_count
 
-        ids = sorted(table_data.keys())
+        ids = sorted(map(int, table_data.keys()))
 
         for _id in ids:
+
+            _id = str(_id)
 
             # TODO: what to do about multiple definitions?
             data_i = table_data[_id][0].data
@@ -75,104 +70,8 @@ class CORD2Table(AbstractTable):
         return _COPY
 
 
-class CORD2(object):
+class Cord2(Cord):
+    table_reader = Cord2Table
+    dtype = Cord2Table.dtype
 
-    table_reader = CORD2Table
-    dtype = CORD2Table.dtype
-
-    _dtype = np.dtype([
-        ('V1', np.float64, (3,)),
-        ('V2', np.float64, (3,)),
-        ('V3', np.float64, (3,))
-    ])
-
-    def __init__(self, bdf_data):
-        self.bdf_data = bdf_data
-
-        self.data = np.zeros(0, dtype=self.dtype)
-        self._data = np.zeros(0, dtype=self._dtype)
-        self.index = {}
-
-        self._current_index = -1
-        self._current_data_1 = None
-        self._current_data_2 = None
-
-    def read_h5(self, h5f):
-        self.set_data(self.table_reader.read(h5f))
-
-    def resize(self, new_size):
-        self._current_index = -1
-        self._current_data_1 = None
-        self._current_data_2 = None
-
-        self.data.resize(new_size)
-        self._data.resize(new_size)
-
-    def set_data(self, data):
-        if data is None:
-            return
-
-        self.resize(data.size)
-
-        np.copyto(self.data, data)
-
-        self.update()
-
-    def update(self):
-        self.index.clear()
-
-        cid = self.data['CID']
-        A = self.data['A']
-        B = self.data['B']
-        C = self.data['C']
-
-        V1 = self._data['V1']
-        V2 = self._data['V2']
-        V3 = self._data['V3']
-
-        for i in range(self.data.size):
-            self.index[cid[i]] = i
-
-            v3 = V3[i] = B[i] - A[i]
-            V3[i] /= norm(v3)
-            v3 = V3[i]
-
-            v1 = V1[i] = C[i] - A[i]
-
-            v2 = V2[i] = np.cross(v3, v1)
-            V2[i] /= norm(v2)
-
-            V1[i] = np.cross(v2, v3)
-
-    def set_cid(self, cid):
-        try:
-            self._current_index = self.index[cid]
-        except KeyError:
-            raise ValueError('Unknown CID! %d' % cid)
-
-        try:
-            self._current_data_1 = self.data[self._current_index]
-            self._current_data_2 = self._data[self._current_index]
-        except IndexError:
-            raise ValueError('CID %d not found in data!' % cid)
-
-    def to_reference_coord(self, cid, x):
-        self.set_cid(cid)
-
-        data = self._current_data_1
-        v1, v2, v3 = self._current_data_2
-
-        xp = [np.dot(x, v1), np.dot(x, v2), np.dot(x, v3)]
-
-        return xp + data[2]
-
-    def to_basic_coord(self, cid, x):
-        xp = self.to_reference_coord(cid, x)
-
-        rid = self._current_data_1[1]
-
-        if rid == 0:
-            return xp
-
-        return self.to_basic_coord(rid, xp)
 
