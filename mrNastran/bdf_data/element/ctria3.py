@@ -13,7 +13,7 @@ import tables
 
 from .._abstract_table import AbstractTable
 from .._cards import register_card
-from ._element import Element
+from ._element import ElementCard
 
 import numpy as np
 
@@ -90,6 +90,6 @@ class Ctria3Table(AbstractTable):
 
 
 @register_card
-class CTRIA3(Element):
+class CTRIA3(ElementCard):
     table_reader = Ctria3Table
     dtype = table_reader.dtype

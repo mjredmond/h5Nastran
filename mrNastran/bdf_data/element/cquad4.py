@@ -13,7 +13,7 @@ import tables
 
 from .._abstract_table import AbstractTable
 from .._cards import register_card
-from ._element import Element
+from ._element import ElementCard
 
 import numpy as np
 
@@ -91,6 +91,6 @@ class Cquad4Table(AbstractTable):
 
 
 @register_card
-class CQUAD4(Element):
+class CQUAD4(ElementCard):
     table_reader = Cquad4Table
     dtype = table_reader.dtype

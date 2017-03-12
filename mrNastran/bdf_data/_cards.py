@@ -19,11 +19,6 @@ def register_card(cls):
     return cls
 
 
-def register_card_only(cls):
-    cards[cls.__name__] = cls
-    return cls
-
-
 def get_card(card_name):
     return cards.get(card_name, None)
 

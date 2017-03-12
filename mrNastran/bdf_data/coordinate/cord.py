@@ -9,16 +9,13 @@ from six import iteritems, iterkeys, itervalues
 from six.moves import range
 
 
-from .._cards import register_card_only
-
 from .cord2c import CORD2C
 from .cord2r import CORD2R
 from .cord2rx import CORD2RX
 from .cord2s import CORD2S
 
 
-@register_card_only
-class CORD(object):
+class Cord(object):
     def __init__(self, bdf_data):
         self.bdf_data = bdf_data
 

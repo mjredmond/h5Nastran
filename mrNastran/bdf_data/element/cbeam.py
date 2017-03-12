@@ -18,10 +18,10 @@ from ._element import ElementCard
 import numpy as np
 
 
-class CbarTable(AbstractTable):
+class CbeamTable(AbstractTable):
 
     group = '/NASTRAN/INPUT/ELEMENT'
-    table_id = 'CBAR'
+    table_id = 'CBEAM'
     table_path = '%s/%s' % (group, table_id)
 
     dtype = np.dtype([
@@ -31,10 +31,13 @@ class CbarTable(AbstractTable):
         ('X', np.float64, (3,)),
         ('G0', np.int64),
         ('OFFT', 'S3'),
+        ('BIT', np.float64),
         ('PA', np.int64),
         ('PB', np.int64),
         ('WA', np.float64, (3,)),
         ('WB', np.float64, (3,)),
+        ('SA', np.int64),
+        ('SB', np.int64),
         ('DOMAIN_ID', np.int64)
     ])
 
@@ -71,7 +74,15 @@ class CbarTable(AbstractTable):
                 table_row['G0'] = -1
                 table_row['X'] = data_i[5:8]
 
-            table_row['OFFT'] = data_i_get(8, '')
+            offt_bit = data_i_get(8, 0.)
+
+            if isinstance(offt_bit, float):
+                table_row['BIT'] = offt_bit
+                table_row['OFFT'] = ''
+            else:
+                table_row['OFFT'] = offt_bit
+                table_row['BIT'] = np.nan
+
             table_row['PA'] = data_i_get(9, 0)
             table_row['PB'] = data_i_get(10, 0)
 
@@ -81,6 +92,9 @@ class CbarTable(AbstractTable):
             table_row['WA'] = wa
             table_row['WB'] = wb
 
+            table_row['SA'] = data_i_get(17, 0)
+            table_row['SB'] = data_i_get(18, 0)
+
             table_row['DOMAIN_ID'] = domain
 
             table_row.append()
@@ -89,6 +103,6 @@ class CbarTable(AbstractTable):
 
 
 @register_card
-class CBAR(ElementCard):
-    table_reader = CbarTable
+class CBEAM(ElementCard):
+    table_reader = CbeamTable
     dtype = table_reader.dtype

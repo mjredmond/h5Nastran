@@ -12,7 +12,7 @@ import numpy as np
 import tables
 
 from .._abstract_table import AbstractTable
-from ._cord import Cord
+from ._cord import CordCard
 
 
 norm = np.linalg.norm
@@ -70,7 +70,7 @@ class Cord2Table(AbstractTable):
         return _COPY
 
 
-class Cord2(Cord):
+class Cord2(CordCard):
     table_reader = Cord2Table
     dtype = Cord2Table.dtype
 

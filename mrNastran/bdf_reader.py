@@ -214,7 +214,7 @@ class BDFReader(object):
             _id = tmp[1].strip()
         else:
 
-            card_id = data[:8].strip().upper()
+            card_id = data[:8].strip().upper().replace('*', '').replace('+', '')
 
             if '*' in data:
                 _id = data[8:24].strip()
@@ -257,10 +257,16 @@ def is_continuation(bulk_data, next_line):
         tmp = set_string_width(data[-1])
         next_tmp = set_string_width(next_line)
 
-        if tmp[72:81].strip() == next_tmp[:8].strip():
+        last_cont = tmp[72:81].strip()
+        next_cont = next_tmp[:8].strip()
+
+        if last_cont == next_cont:
             return True
-        else:
-            return False
+        elif last_cont == '' and len(next_cont) == 1:
+            if next_cont == r'*' or next_cont == r'+':
+                return True
+
+        return False
 
 
 def get_include_file(reader, first_line, current_file):

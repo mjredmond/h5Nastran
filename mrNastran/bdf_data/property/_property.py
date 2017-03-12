@@ -11,7 +11,7 @@ from six.moves import range
 import numpy as np
 
 
-class Property(object):
+class PropertyCard(object):
 
     table_reader = None
     dtype = None

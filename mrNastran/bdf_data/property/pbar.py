@@ -13,7 +13,7 @@ import tables
 
 from .._abstract_table import AbstractTable
 from .._cards import register_card
-from ._property import Property
+from ._property import PropertyCard
 
 import numpy as np
 
@@ -89,6 +89,6 @@ class PbarTable(AbstractTable):
 
 
 @register_card
-class PBAR(Property):
+class PBAR(PropertyCard):
     table_reader = PbarTable
     dtype = table_reader.dtype

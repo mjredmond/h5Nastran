@@ -11,7 +11,7 @@ from six.moves import range
 import numpy as np
 
 
-class Element(object):
+class ElementCard(object):
     table_reader = None
     dtype = None
     """:type: np.dtype"""

@@ -13,7 +13,7 @@ import numpy as np
 norm = np.linalg.norm
 
 
-class Cord(object):
+class CordCard(object):
 
     table_reader = None
     dtype = None

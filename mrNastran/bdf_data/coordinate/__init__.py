@@ -14,4 +14,4 @@ from .cord2c import CORD2C
 from .cord2r import CORD2R
 from .cord2rx import CORD2RX
 from .cord2s import CORD2S
-from .cord import CORD
+from .cord import Cord
