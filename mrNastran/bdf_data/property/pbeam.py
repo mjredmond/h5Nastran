@@ -221,7 +221,7 @@ class PbeamTable(AbstractTable):
         try:
             group = h5f.get_node(cls.table_path)
         except tables.NoSuchNodeError:
-            return None
+            return None, None
 
         identity = group.IDENTITY
         stress_recovery = group.STRESS_RECOVERY
