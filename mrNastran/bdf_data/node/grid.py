@@ -121,7 +121,7 @@ class GRID(object):
         self.set_nid(nid)
 
         x = self._current_data['X']
-        cid = self._current_data['CID']
+        cid = self._current_data['CP']
 
         xb = self.bdf_data.cord.to_basic_coord(cid, x)
 
@@ -135,14 +135,21 @@ class GRID(object):
         if convert_data:
             data = self.data
         else:
-            data = np.array(self.data)
+            data = np.array(self.data, dtype=self.dtype)
 
         x = data['X']
-        cid = data['CID']
+        cid = data['CP']
 
         to_basic_coord = self.bdf_data.cord.to_basic_coord
 
         for i in range(data.shape[0]):
-            x[i] = to_basic_coord(cid[i], x[i])
+            _cid = cid[i]
+            if _cid == 0:
+                continue
+
+            # print(id[i], _cid, x[i])
+            x[i] = to_basic_coord(_cid, x[i])
+            # print(x[i])
+            cid[i] = 0
 
         return data
