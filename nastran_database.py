@@ -28,6 +28,12 @@ class NastranDatabase(object):
 
         self._tables = set()
 
+    def close(self):
+        try:
+            self.h5f.close()
+        except Exception:
+            pass
+
     def _callback(self, table_data):
         table_format = get_pch_table(table_data.header.results_type)
 
@@ -39,10 +45,12 @@ class NastranDatabase(object):
         self._tables.add(table_format)
 
     def read(self, bdffile, pchfile=None):
-        self._read_bdf(bdffile)
+        bdf_data = self._read_bdf(bdffile)
 
         if pchfile is not None:
             self._read_pch(pchfile)
+
+        return bdf_data
 
     def _read_bdf(self, bdffile):
         reader = BDFReader(bdffile)
@@ -73,6 +81,8 @@ class NastranDatabase(object):
             table.finalize(self.h5f)
 
         self._unsupported_cards(unsupported)
+
+        return reader.bdf_data
 
     def _unsupported_cards(self, cards):
         cards = np.array(cards, dtype='S8')
