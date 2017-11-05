@@ -33,18 +33,21 @@ class Property(object):
         try:
             self.pbar.set_pid(pid)
             self._property = self.pbar
+            return
         except ValueError:
             pass
 
         try:
             self.pbeam.set_pid(pid)
             self._property = self.pbeam
+            return
         except ValueError:
             pass
 
         try:
             self.pshell.set_pid(pid)
             self._property = self.pshell
+            return
         except ValueError:
             pass
 
