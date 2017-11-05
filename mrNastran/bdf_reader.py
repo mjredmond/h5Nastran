@@ -12,7 +12,7 @@ from collections import OrderedDict
 import os
 
 
-from .utilities import convert_field, chunk_string
+from .utilities import convert_field, chunk_string, format_data
 
 
 class MyList(list):
@@ -33,6 +33,16 @@ class BulkData(object):
         self.line_number = 0
         self.data = MyList()
         self.counter = 0
+        self.field_width = 16
+
+    def copy(self):
+        bd = BulkData()
+        bd.filename = self.filename
+        bd.line_number = self.line_number
+        bd.data.extend(self.data)
+        bd.counter = self.counter
+
+        return bd
 
     def convert_data(self):
         if ',' in self.data[0]:
@@ -75,6 +85,53 @@ class BulkData(object):
     def __str__(self):
         return str((self.filename, self.line_number, self.counter, self.data))
 
+    def write_data(self, f):
+
+        field_width = self.field_width
+
+        if field_width == 16:
+            cont = '*       '
+            count_check = 4
+        else:
+            cont = '+       '
+            count_check = 8
+
+        card_id = self.data[0]
+
+        data = [format_data(self.data[i], field_width) for i in range(1, len(self.data))]
+
+        if card_id == 'PARAM':
+            data.insert(0, card_id)
+            data = [i.strip() for i in data]
+            f.write(','.join(data) + '\n')
+            return
+
+        card_id = '%s*' % card_id
+        card_id = '%-8s' % card_id
+
+        lines = []
+
+        line = card_id
+
+        count = 0
+
+        for i in range(len(data)):
+            line += data[i]
+
+            count += 1
+
+            if count == count_check:
+                lines.append(line)
+                line = cont
+                count = 0
+
+        if len(line) > 8:
+            lines.append(line)
+
+        lines = '\n'.join(lines)
+
+        f.write(lines + '\n')
+
 
 class OtherData(object):
     def __init__(self):
@@ -86,6 +143,9 @@ class OtherData(object):
     def __str__(self):
         return str((self.filename, self.line_number, self.counter, self.data))
 
+    def write_data(self, f):
+        f.write(self.data + '\n')
+
 
 class BDFData(object):
     def __init__(self):
@@ -94,6 +154,55 @@ class BDFData(object):
 
         self.other_data = []
         """:type: list[OtherData]"""
+
+    def add_bulk_data(self, data):
+        counter = len(self.bulk_data) + len(self.other_data)
+
+        bd = BulkData()
+        bd.filename = 'N/A'
+        bd.line_number = -1
+        bd.data.extend(data)
+        bd.counter = counter
+        bd.convert_data()
+
+        try:
+            self.bulk_data[data[0]][data[1]].append(data)
+        except KeyError:
+            self.bulk_data[data[0]][data[1]] = [data]
+
+    def add_other_data(self, data):
+        counter = len(self.bulk_data) + len(self.other_data)
+
+        od = OtherData()
+        od.filename = 'N/A'
+        od.line_number = -1
+        od.data = data
+        od.counter = counter
+
+        self.other_data.append(od)
+
+    def write_bdf(self, filename):
+        all_data = list(self.other_data)
+
+        for key, carddata in iteritems(self.bulk_data):
+            for val in itervalues(carddata):
+                all_data.extend(val)
+
+        all_data = sorted(all_data, key=lambda i: i.counter)
+
+        begin_bulk = False
+
+        with open(filename, 'w') as f:
+            for data in all_data:
+                is_bulk = isinstance(data, BulkData)
+
+                if not begin_bulk and is_bulk:
+                    begin_bulk = True
+                    f.write('BEGIN BULK\n')
+
+                data.write_data(f)
+
+            f.write('ENDDATA\n')
 
 
 class FileReader(object):
