@@ -36,24 +36,28 @@ class Element(object):
         try:
             self.cbar.set_eid(eid)
             self._element = self.cbar
+            return
         except ValueError:
             pass
 
         try:
             self.cbeam.set_eid(eid)
             self._element = self.cbeam
+            return
         except ValueError:
             pass
 
         try:
             self.cquad4.set_eid(eid)
             self._element = self.cquad4
+            return
         except ValueError:
             pass
 
         try:
             self.ctria3.set_eid(eid)
             self._element = self.ctria3
+            return
         except ValueError:
             pass
 
