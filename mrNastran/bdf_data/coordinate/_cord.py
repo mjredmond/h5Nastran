@@ -72,16 +72,17 @@ class CordCard(object):
         for i in range(self.data.size):
             self.index[cid[i]] = i
 
-            v3 = V3[i] = B[i] - A[i]
-            V3[i] /= norm(v3)
-            v3 = V3[i]
+            v3 = B[i] - A[i]
+            v3 /= norm(v3)
 
-            v1 = V1[i] = C[i] - A[i]
+            v1 = C[i] - A[i]
 
-            v2 = V2[i] = np.cross(v3, v1)
-            V2[i] /= norm(v2)
+            v2 = np.cross(v3, v1)
+            v2 /= norm(v2)
 
             V1[i] = np.cross(v2, v3)
+            V2[i] = v2
+            V3[i] = v3
 
     def set_cid(self, cid):
         try:
@@ -113,4 +114,4 @@ class CordCard(object):
         if rid == 0:
             return xp
 
-        return self.to_basic_coord(rid, xp)
+        return self.bdf_data.cord.to_basic_coord(rid, xp)
