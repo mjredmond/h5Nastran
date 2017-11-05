@@ -94,3 +94,117 @@ def format_double(value, field_width):
 
 def chunk_string(in_str, width):
     return re.findall('.{%d}' % width, in_str)
+
+
+def format_float_data(card_data, card_len=16):
+    if not isinstance(card_data, float):
+        card_data = float(card_data)
+
+    if card_data > 0.:
+        prefix = ''
+    else:
+        prefix = '-'
+        card_len -= 1
+
+    card_data = abs(card_data)
+
+    card_txt = str(card_data)
+
+    # while card_txt[0] == '0':
+    #     card_txt = card_txt[1:]
+    #
+    # while card_txt[-1] == '0':
+    #     card_txt = card_txt[:-1]
+
+    card_txt = card_txt.strip(' 0')
+
+    if len(card_txt) <= card_len:
+        if prefix != '':
+            fmt = "%" + "%ds" % (card_len+1)
+        else:
+            fmt = "%" + "%ds" % card_len
+
+        result = prefix + card_txt.strip()
+
+        if result == '.' or result == '-.':
+            result = '.0'
+
+        return fmt % result
+
+    from math import log10
+    exponent = int(log10(card_data))
+
+    if exponent > 0.:
+        exponent = "+" + str(exponent)
+    else:
+        exponent = str(exponent)
+
+    remaining_width = card_len - len(exponent)
+
+    tmp = card_txt.split('.')
+    no_decimals = tmp[0] + tmp[1]
+
+    if card_data >= 1.:
+        before_decimal = no_decimals[0] + '.'
+        after_decimal = no_decimals[1:]
+    else:
+        before_decimal = '.'
+        after_decimal = no_decimals
+
+    remaining_width -= len(before_decimal)
+
+    after_decimal = after_decimal[:remaining_width]
+
+    return prefix + before_decimal + after_decimal + exponent
+
+
+def format_data(card_data, card_len=16):
+    if isinstance(card_data, str):
+        fmt = "%" + "%ds" % card_len
+        return fmt % card_data.strip()
+    elif isinstance(card_data, int):
+        fmt = "%" + "%dd" % card_len
+        return fmt % card_data
+    elif isinstance(card_data, float):
+        return format_float_data(card_data, card_len)
+    elif card_data is None:
+        return ' '*card_len
+    else:
+        print(card_data)
+        raise Exception
+
+
+def expand_list(text_list):
+    parts = text_list.split(' ')
+
+    result = []
+
+    for part in parts:
+        if part.replace(' ', '') == '':
+            continue
+
+        parts_ = part.split(':')
+        try:
+            first = int(parts_[0])
+        except IndexError:
+            first = int(parts_)
+        except ValueError:
+            print(text_list)
+            print(part)
+            print(parts_)
+            raise
+
+        try:
+            last = int(parts_[1])
+        except IndexError:
+            last = first
+
+        try:
+            offset = int(parts_[2])
+        except IndexError:
+            offset = 1
+
+        for id_ in range(first, last + offset, offset):
+            result.append(id_)
+
+    return result
