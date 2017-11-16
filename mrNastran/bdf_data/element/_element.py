@@ -1,8 +1,4 @@
 """
-Copyright (C) Michael James Redmond, Jr - All Rights Reserved
-Unauthorized copying of this file, via any medium is strictly prohibited
-Proprietary and confidential
-Written by Michael James Redmond, Jr.
 """
 from __future__ import print_function, absolute_import
 from six import iteritems, iterkeys, itervalues
@@ -26,7 +22,9 @@ class ElementCard(object):
         self._current_data = None
 
     def read_h5(self, h5f):
-        self.set_data(self.table_reader.read(h5f))
+        data = self.table_reader.read(h5f)
+        if data is not None:
+            self.set_data(self.table_reader.read(h5f))
 
     def resize(self, new_size):
         self._current_index = -1
