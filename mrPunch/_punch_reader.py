@@ -14,9 +14,10 @@ def _default_callback(table_data):
     print(table_data.header)
 
 
-def _worker(data, d):
+def _worker(data, lineno, d):
     try:
         tmp = TableData(data)
+        tmp.header.lineno = lineno
     except TypeError:
         d['error'] = True
         return
@@ -63,7 +64,7 @@ class PunchReader(object):
 
             d = _data[-1]
 
-            p = Process(target=_worker, args=(table_data, d))
+            p = Process(target=_worker, args=(table_data, line_number, d))
             p.start()
 
             _process.append(p)

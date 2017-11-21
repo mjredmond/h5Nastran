@@ -32,6 +32,9 @@ class FileReader(object):
         self._old_data = None
         self._new_data = None
 
+        self._data_read = 0
+        self._old_data_read = 0
+
     def __del__(self):
         self.close()
 
@@ -58,7 +61,11 @@ class FileReader(object):
 
             self._old_data = self._data
 
+            self._old_data_read = self._data_read
+
             _data = self.f.read(self.chunksize)
+
+            self._data_read += len(_data)
 
             if len(_data) == 0:
                 return None
@@ -91,7 +98,4 @@ class FileReader(object):
                 return None
 
     def line_number(self):
-        try:
-            return int(self._data[self._counter][72:80]) - 1
-        except Exception:
-            return -1
+        return self._data_read / self.linesize + self._counter
