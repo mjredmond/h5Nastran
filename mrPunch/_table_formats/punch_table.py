@@ -316,7 +316,7 @@ def _get_data(data, index):
     elif isinstance(index, (list, tuple)):
         return [_get_data(data, i) for i in index]
     elif isinstance(index, DefinedValue):
-        return index
+        return index.value
     else:
         raise TypeError('Unknown index type! %s' % str(type(index)))
 
