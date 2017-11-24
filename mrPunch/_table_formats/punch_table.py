@@ -38,7 +38,7 @@ def _validator(data):
 class PunchTable(object):
     _tables = {}
 
-    def __new__(cls, group, table_id, results_type, index_id, dtype, indices, validator=None):
+    def __new__(cls, results_type, table_id, group, index_id, dtype, indices, validator=None):
         instance = super(PunchTable, cls).__new__(cls)
         cls._tables[results_type] = instance
         return instance
@@ -218,7 +218,7 @@ class PunchTable(object):
 
         for i in range(len(data)):
             _data = data[i]
-            _data = validator([_data[index] for index in self.indices])
+            _data = validator([_get_data(_data, index) for index in self.indices])
             _data.append(self.domain_count)
 
             for j in range(len(names)):
@@ -303,6 +303,22 @@ class PunchTable(object):
         domains.flush()
 
         self._index_table = None
+
+
+class DefinedValue(object):
+    def __init__(self, value):
+        self.value = value
+
+
+def _get_data(data, index):
+    if isinstance(index, (int, slice)):
+        return data[index]
+    elif isinstance(index, (list, tuple)):
+        return [_get_data(data, i) for i in index]
+    elif isinstance(index, DefinedValue):
+        return index
+    else:
+        raise TypeError('Unknown index type! %s' % str(type(index)))
 
 
 def _validator1(data):
