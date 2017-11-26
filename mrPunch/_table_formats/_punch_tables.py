@@ -83,11 +83,9 @@ PunchTable('GRID POINT FORCE BALANCE REAL OUTPUT', 'GRID_FORCE', '/NASTRAN/RESUL
 )
 
 
-####################### elemental #######################
+####################### elemental force #######################
 
-############### force ###############
-
-# bar force
+# bar
 
 PunchTable('ELEMENT FORCES 34 BAR REAL OUTPUT', 'BAR', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
     [('EID', _int), ('M1A', _float), ('M2A', _float), ('M1B', _float), ('M2B', _float), ('SHR1', _float),
@@ -97,7 +95,7 @@ PunchTable('ELEMENT FORCES 34 BAR REAL OUTPUT', 'BAR', '/NASTRAN/RESULT/ELEMENTA
 )
 
 
-# beam force
+# beam
 
 PunchTable('ELEMENT FORCES 2 BEAM REAL OUTPUT', 'BEAM', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
     [('EID', _int), ('GRID', _int, (11,)), ('DIST', _float, (11,)), ('M1', _float, (11,)), ('M2', _float, (11,)),
@@ -108,19 +106,19 @@ PunchTable('ELEMENT FORCES 2 BEAM REAL OUTPUT', 'BEAM', '/NASTRAN/RESULT/ELEMENT
     validator=_default_validator,
 )
 
-# bush force
+# bush
 
 # TODO: bush
 
 
-# shell force
+# shell
 
 shell_dtype = [('EID', _int), ('FX', _float), ('FY', _float), ('FXY', _float), ('MX', _float), ('MY', _float),
                ('MXY', _float), ('QX', _float), ('QY', _float)]
 
 shell_indices = [0, 2, 3, 4, 5, 6, 7, 8, 9]
 
-# quad4 force
+# quad4
 
 PunchTable('ELEMENT FORCES 33 QUAD4 REAL OUTPUT MATERIAL', 'QUAD4', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
     shell_dtype,
@@ -136,7 +134,7 @@ PunchTable('ELEMENT FORCES 33 QUAD4 REAL OUTPUT', 'QUAD4', '/NASTRAN/RESULT/ELEM
 )
 
 
-# tria3 force
+# tria3
 
 PunchTable('ELEMENT FORCES 74 TRIA3 REAL OUTPUT MATERIAL', 'TRIA3', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
     shell_dtype,
@@ -176,3 +174,28 @@ PunchTable('ELEMENT FORCES 144 QUAD4C REAL OUTPUT', 'QUAD4_CN', '/NASTRAN/RESULT
 )
 
 
+# rod
+
+# TODO: rod
+
+
+# shear
+
+_dtype = [('EID', _int), ('F14', _float), ('F12', _float), ('F21', _float), ('F23', _float),
+         ('F32', _float), ('F34', _float), ('F43', _float), ('F41', _float), ('K1', _float),
+          ('SHR12', _float), ('K2', _float), ('SHR23', _float), ('K3', _float), ('SHR34', _float),
+          ('K4', _float), ('SHR41', _float), ('DOMAIN_ID', _int)]
+
+_indices = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+
+PunchTable('ELEMENT FORCES 4 SHEAR MATERIAL REAL OUTPUT', 'SHEAR', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
+    _dtype,
+    _indices,
+    validator=_default_validator,
+)
+
+PunchTable('ELEMENT FORCES 4 SHEAR REAL OUTPUT', 'SHEAR', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
+    _dtype,
+    _indices,
+    validator=_default_validator,
+)
