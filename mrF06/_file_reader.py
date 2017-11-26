@@ -70,7 +70,7 @@ class FileReader(object):
 
             self._old_data_read = self._data_read
 
-            print('reading data...')
+            # print('reading data...')
 
             _data = self.f.read(self.chunksize)
 
