@@ -1,5 +1,3 @@
-"""
-"""
 from __future__ import print_function, absolute_import
 from six import iteritems, itervalues
 from six.moves import range
@@ -8,14 +6,12 @@ from tables import IsDescription, Int64Col, Float64Col, StringCol
 import tables
 
 from .._abstract_table import AbstractTable
-from .._cards import register_card
 from ._element import ElementCard
 
 import numpy as np
 
 
 class Cquad4Table(AbstractTable):
-
     group = '/NASTRAN/INPUT/ELEMENT'
     table_id = 'CQUAD4'
     table_path = '%s/%s' % (group, table_id)
@@ -35,26 +31,26 @@ class Cquad4Table(AbstractTable):
     Format = tables.descr_from_dtype(dtype)[0]
 
     @classmethod
-    def _write_data(cls, h5f, table_data, h5table):
+    def _write_data(cls, h5f, cards, h5table):
+
         table_row = h5table.row
 
         domain = cls.domain_count
 
-        ids = sorted(map(int, table_data.keys()))
+        eids = sorted(cards.keys())
 
-        for _id in ids:
+        for eid in eids:
 
-            _id = str(_id)
+            data = cards[eid]
 
-            # TODO: what to do about multiple definitions?
-            data_i = table_data[_id][0].data
-            data_i_get = data_i.get
+            def _get_val(val, default):
+                return default if val in (None, '') else val
 
-            table_row['EID'] = data_i[1]
-            table_row['PID'] = data_i_get(2, data_i[1])
-            table_row['GRID'] = data_i[3:7]
+            table_row['EID'] = data[1]
+            table_row['PID'] = _get_val(data[2], data[1])
+            table_row['GRID'] = data[3:7]
 
-            theta = data_i[7]
+            theta = data[7]
             mcid = 0
 
             if isinstance(theta, int):
@@ -67,14 +63,14 @@ class Cquad4Table(AbstractTable):
             table_row['THETA'] = theta
             table_row['MCID'] = mcid
 
-            table_row['ZOFFS'] = data_i_get(8, 0.)
-            table_row['TFLAG'] = data_i_get(10, 0)
+            table_row['ZOFFS'] = _get_val(data[8], 0.)
+            table_row['TFLAG'] = _get_val(data[10], 0)
 
             ti = [
-                data_i_get(11, 0.),
-                data_i_get(12, 0.),
-                data_i_get(13, 0.),
-                data_i_get(14, 0.)
+                _get_val(data[11], 0.),
+                _get_val(data[12], 0.),
+                _get_val(data[13], 0.),
+                _get_val(data[14], 0.)
             ]
 
             table_row['Ti'] = ti
@@ -86,7 +82,7 @@ class Cquad4Table(AbstractTable):
         h5f.flush()
 
 
-@register_card
 class CQUAD4(ElementCard):
     table_reader = Cquad4Table
     dtype = table_reader.dtype
+    _id = 'EID'

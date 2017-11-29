@@ -1,15 +1,13 @@
-
 from __future__ import print_function, absolute_import
 from six import iteritems, iterkeys, itervalues
 from six.moves import range
 
-try:
-    from ._file_reader import FileReader
-except Exception:
-    from _file_reader import FileReader
+
+from ._file_reader import FileReader
+from .f06_table import F06Table
 
 
-class F06Table(object):
+class _DummyTable(object):
     def __init__(self):
         self.header = []
         self.data = []
@@ -34,20 +32,31 @@ class F06Reader(object):
 
         self._current_table = None
 
+        self._callback = None
+
+    def register_callback(self, callback):
+        assert callable(callback)
+        self._callback = callback
+
     def read(self):
         while not self._done_reading:
             table_lines, line_number = self._read_table()
             if self._done_reading:
                 break
 
-            table_format = self._find_table_format(table_lines)
+            table_format = F06Table.find_table(table_lines)
 
             if table_format is None:
+                self._process_table(self._current_table)
+                self._current_table = None
                 continue
 
-            table = F06Table()
-            table.header.extend(table_lines[:table_format.header_lines])
-            table.data.extend(table_lines[table_format.header_lines:])
+            table = table_format()
+            table.set_data(table_lines)
+            table.line_number = line_number
+
+            for i in range(len(table.header)):
+                table.header[i] = table.header[i].strip()
 
             if self._current_table is None:
                 self._current_table = table
@@ -55,7 +64,6 @@ class F06Reader(object):
                 if self._current_table.header == table.header:
                     self._current_table.data.extend(table.data)
                 else:
-                    self._current_table.table_format = table_format
                     self._process_table(self._current_table)
                     self._current_table = table
 
@@ -64,14 +72,16 @@ class F06Reader(object):
             self._current_table = None
 
     def _process_table(self, table):
-        print(table.header)
+        if table is None:
+            return
 
-    def _find_table_format(self, table_lines):
-        for format in self._table_formats:
-            if format.header_check in table_lines[format.header_check_line]:
-                return format
+        pch_table = table.to_pch()
 
-        return None
+        if isinstance(pch_table, (list, tuple)):
+            for table in pch_table:
+                self._callback(table)
+        else:
+            self._callback(pch_table)
 
     def _read_table(self):
         table_lines = []

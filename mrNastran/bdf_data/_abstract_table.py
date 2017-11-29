@@ -1,5 +1,3 @@
-"""
-"""
 from __future__ import print_function, absolute_import
 from six import iteritems, itervalues
 from six.moves import range
@@ -10,7 +8,6 @@ import numpy as np
 
 
 class AbstractTable(object):
-
     group = ''
     table_id = ''
     table_path = ''
@@ -49,4 +46,3 @@ class AbstractTable(object):
             return None
 
         return table.read()
-

@@ -1,5 +1,3 @@
-"""
-"""
 from __future__ import print_function, absolute_import
 from six import iteritems, itervalues
 from six.moves import range
@@ -8,7 +6,6 @@ from tables import IsDescription, Int64Col, Float64Col, StringCol
 import tables
 
 from .._abstract_table import AbstractTable
-from .._cards import register_card
 from ._property import PropertyCard
 
 import numpy as np
@@ -82,14 +79,14 @@ class PbeamTable(AbstractTable):
             return h5f.get_node(cls.table_path)
 
     @classmethod
-    def _write_data(cls, h5f, table_data, h5table):
+    def _write_data(cls, h5f, cards, h5table):
 
         identity_row = h5table.IDENTITY.row
         stress_recovery = h5table.STRESS_RECOVERY
 
         domain = cls.domain_count
 
-        ids = sorted(map(int, table_data.keys()))
+        ids = sorted(cards.keys())
 
         stress_recovery_pos = 0
 
@@ -106,37 +103,36 @@ class PbeamTable(AbstractTable):
 
         for _id in ids:
 
-            _id = str(_id)
+            data = cards[_id]
 
-            # TODO: what to do about multiple definitions?
-            data_i = table_data[_id][0].data
-            data_i_get = data_i.get
+            def _get_val(val, default):
+                return default if val in (None, '') else val
 
             # print(data_i)
 
-            identity_row['PID'] = data_i[1]
-            identity_row['MID'] = data_i_get(2, -1)
+            identity_row['PID'] = data[1]
+            identity_row['MID'] = _get_val(data[2], -1)
 
-            sr_data['A'] = data_i_get(3, 0.)
-            sr_data['I1'] = data_i_get(4, 0.)
-            sr_data['I2'] = data_i_get(5, 0.)
-            sr_data['I12'] = data_i_get(6, 0.)
-            sr_data['J'] = data_i_get(7, 0.)
-            sr_data['NSM'] = data_i_get(8, 0.)
+            sr_data['A'] = _get_val(data[3], 0.)
+            sr_data['I1'] = _get_val(data[4], 0.)
+            sr_data['I2'] = _get_val(data[5], 0.)
+            sr_data['I12'] = _get_val(data[6], 0.)
+            sr_data['J'] = _get_val(data[7], 0.)
+            sr_data['NSM'] = _get_val(data[8], 0.)
 
-            next_data = data_i_get(9, None)
+            next_data = _get_val(data[9], None)
 
             if isinstance(next_data, float) or next_data is None:
                 sr_data['SO'] = b'YES'
                 sr_data['X_XB'] = 0.
-                sr_data['C1'] = next_data
-                sr_data['C2'] = data_i_get(10, 0.)
-                sr_data['D1'] = data_i_get(11, 0.)
-                sr_data['D2'] = data_i_get(12, 0.)
-                sr_data['E1'] = data_i_get(13, 0.)
-                sr_data['E2'] = data_i_get(14, 0.)
-                sr_data['F1'] = data_i_get(15, 0.)
-                sr_data['F2'] = data_i_get(16, 0.)
+                sr_data['C1'] = _get_val(next_data, 0.)
+                sr_data['C2'] = _get_val(data[10], 0.)
+                sr_data['D1'] = _get_val(data[11], 0.)
+                sr_data['D2'] = _get_val(data[12], 0.)
+                sr_data['E1'] = _get_val(data[13], 0.)
+                sr_data['E2'] = _get_val(data[14], 0.)
+                sr_data['F1'] = _get_val(data[15], 0.)
+                sr_data['F2'] = _get_val(data[16], 0.)
                 next_i = 17
             else:
                 sr_data['SO'] = b'NO'
@@ -153,14 +149,14 @@ class PbeamTable(AbstractTable):
 
             stress_recovery_data = [sr_data.tolist()]
 
-            last_i = len(data_i) - 1
+            last_i = len(data) - 1
 
             sr_indices = []
 
             i = next_i
 
             while True:
-                first_data = data_i_get(i, None)
+                first_data = _get_val(data[i], None)
 
                 if isinstance(first_data, float):
                     break
@@ -184,11 +180,11 @@ class PbeamTable(AbstractTable):
 
                 # print(i1)
 
-                sr_data['SO'] = data_i[i1].encode()
+                sr_data['SO'] = data[i1].encode()
 
                 _i = 1
                 for j in range(i1 + 1, i1 + data_len):
-                    sr_data[comp_sr[_i]] = data_i_get(j, 0.)
+                    sr_data[comp_sr[_i]] = _get_val(data[j], 0.)
                     _i += 1
 
                 stress_recovery_data.append(sr_data.tolist())
@@ -197,7 +193,7 @@ class PbeamTable(AbstractTable):
             for i in range(i, i + 16):
                 _comp = comp[i_]
                 i_ += 1
-                identity_row[_comp] = data_i_get(i, 0.)
+                identity_row[_comp] = _get_val(data[i], 0.)
 
             identity_row['STRESS_RECOVERY_LEN'] = len(stress_recovery_data)
             identity_row['STRESS_RECOVERY_POS'] = stress_recovery_pos
@@ -225,7 +221,6 @@ class PbeamTable(AbstractTable):
         return identity.read(), stress_recovery.read()
 
 
-@register_card
 class PBEAM(PropertyCard):
     table_reader = PbeamTable
     dtype = table_reader.dtype
@@ -233,41 +228,14 @@ class PBEAM(PropertyCard):
 
     def __init__(self, bdf_data):
         super(PBEAM, self).__init__(bdf_data)
-
         self.stress_recovery = np.zeros(0, dtype=self.dtype_sr)
 
     def resize(self, new_size):
-        self._current_index = -1
-        self._current_data = None
-
         self.data.resize(new_size[0])
         self.stress_recovery.resize(new_size[1])
 
     def set_data(self, data):
         self.resize((data[0].size, data[1].size))
-
         np.copyto(self.data, data[0])
         np.copyto(self.stress_recovery, data[1])
 
-        self.update()
-
-    def set_pid(self, pid):
-        try:
-            self._current_index = self.index[pid]
-        except KeyError:
-            raise ValueError('Unknown PID! %d' % pid)
-
-        try:
-            current_data = self.data[self._current_index]
-        except IndexError:
-            raise ValueError('PID %d not found in data!' % pid)
-
-        i1 = current_data['STRESS_RECOVERY_POS']
-        i2 = i1 + current_data['STRESS_RECOVERY_LEN']
-
-        try:
-            stress_recovery_data = self.stress_recovery[i1:i2]
-        except IndexError:
-            raise ValueError('PID %d has incorrect stress recovery indices!' % pid)
-
-        self._current_data = (current_data, stress_recovery_data)

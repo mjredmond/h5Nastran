@@ -74,7 +74,7 @@ class FileReader(object):
 
             _data = self.f.read(self.chunksize)
 
-            _data_len = _data.rfind(self.separator)
+            _data_len = _data.rfind(self.separator) + 1
 
             rewind = len(_data) - _data_len
 

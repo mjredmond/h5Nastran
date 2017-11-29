@@ -108,7 +108,12 @@ PunchTable('ELEMENT FORCES 2 BEAM REAL OUTPUT', 'BEAM', '/NASTRAN/RESULT/ELEMENT
 
 # bush
 
-# TODO: bush
+PunchTable('ELEMENT FORCES 102 BUSH REAL OUTPUT', 'BUSH', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
+    [('EID', _int), ('FX', _float), ('FY', _float), ('FZ'), ('MX', _float), ('MY', _float), ('MZ', _float),
+     ('DOMAIN_ID', _int)],
+    [0, 2, 3, 4, 5, 6, 7],
+    validator=_default_validator,
+)
 
 
 # shell
@@ -176,7 +181,11 @@ PunchTable('ELEMENT FORCES 144 QUAD4C REAL OUTPUT', 'QUAD4_CN', '/NASTRAN/RESULT
 
 # rod
 
-# TODO: rod
+PunchTable('ELEMENT FORCES 1 ROD REAL OUTPUT', 'ROD', '/NASTRAN/RESULT/ELEMENTAL/FORCE', 'EID',
+    [('EID', _int), ('AX', _float), ('T', _float), ('DOMAIN_ID', _int)],
+    [0, 2, 3],
+    validator=_default_validator,
+)
 
 
 # shear

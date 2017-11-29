@@ -1,5 +1,3 @@
-"""
-"""
 from __future__ import print_function, absolute_import
 from six import iteritems, iterkeys, itervalues
 from six.moves import range
@@ -32,26 +30,24 @@ class Cord2Table(AbstractTable):
     Format = tables.descr_from_dtype(dtype)[0]
 
     @classmethod
-    def _write_data(cls, h5f, table_data, h5table):
+    def _write_data(cls, h5f, cards, h5table):
         table_row = h5table.row
 
         domain = cls.domain_count
 
-        ids = sorted(map(int, table_data.keys()))
+        ids = sorted(cards.keys())
 
         for _id in ids:
+            data = cards[_id]
 
-            _id = str(_id)
+            def _get_val(val, default):
+                return default if val in (None, '') else val
 
-            # TODO: what to do about multiple definitions?
-            data_i = table_data[_id][0].data
-            data_i_get = data_i.get
-
-            table_row['CID'] = data_i[1]
-            table_row['RID'] = data_i_get(2, 0)
-            table_row['A'] = data_i[3:6]
-            table_row['B'] = data_i[6:9]
-            table_row['C'] = data_i[9:12]
+            table_row['CID'] = data[1]
+            table_row['RID'] = _get_val(data[2], 0)
+            table_row['A'] = data[3:6]
+            table_row['B'] = data[6:9]
+            table_row['C'] = data[9:12]
             table_row['DOMAIN_ID'] = domain
 
             table_row.append()
