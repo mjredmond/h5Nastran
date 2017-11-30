@@ -40,37 +40,26 @@ class Ctria3Table(AbstractTable):
 
         for eid in eids:
             data = cards[eid]
+            """:type data: pyNastran.bdf.cards.elements.shell.CQUAD4"""
 
-            def _get_val(val, default):
-                return default if val in (None, '') else val
+            table_row['EID'] = data.eid
+            table_row['PID'] = data.pid
+            table_row['GRID'] = data.node_ids
 
-            table_row['EID'] = data[1]
-            table_row['PID'] = _get_val(data[2], data[1])
-            table_row['GRID'] = data[3:6]
-
-            theta = data[6]
-            mcid = 0
-
-            if isinstance(theta, int):
-                mcid = theta
+            if isinstance(data.theta_mcid, int):
+                mcid = data.theta_mcid
                 theta = np.nan
-            elif theta is None:
-                theta = 0.
+            else:
                 mcid = 0
+                theta = data.theta_mcid
 
             table_row['THETA'] = theta
             table_row['MCID'] = mcid
 
-            table_row['ZOFFS'] = _get_val(data[7], 0.)
-            table_row['TFLAG'] = _get_val(data[10], 0)
+            table_row['ZOFFS'] = data.zoffset
+            table_row['TFLAG'] = data.tflag
 
-            ti = [
-                _get_val(data[11], 0.),
-                _get_val(data[12], 0.),
-                _get_val(data[13], 0.)
-            ]
-
-            table_row['Ti'] = ti
+            table_row['Ti'] = [data.T1, data.T2, data.T3]
 
             table_row['DOMAIN_ID'] = domain
 
@@ -82,4 +71,3 @@ class Ctria3Table(AbstractTable):
 class CTRIA3(ElementCard):
     table_reader = Ctria3Table
     dtype = table_reader.dtype
-    _id = 'EID'

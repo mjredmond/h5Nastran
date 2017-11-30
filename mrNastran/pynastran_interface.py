@@ -17,14 +17,20 @@ def get_bdf_cards(bdf):
     def _add_cards_from_dict(obj):
         for key, value in iteritems(obj):
             if isinstance(value, (list, tuple)):
-                card_type = value[0].type
+                values = value
 
-                try:
-                    cards[card_type]
-                except KeyError:
-                    cards[card_type] = {}
+                for value in values:
+                    card_type = value.type
 
-                cards[card_type][key] = [_.repr_fields() for _ in value]
+                    try:
+                        cards[card_type]
+                    except KeyError:
+                        cards[card_type] = {}
+
+                    try:
+                        cards[card_type][key].append(value)
+                    except KeyError:
+                        cards[card_type][key] = [value]
             else:
                 card_type = value.type
 
@@ -33,28 +39,31 @@ def get_bdf_cards(bdf):
                 except KeyError:
                     cards[card_type] = {}
 
-                cards[card_type][key] = value.repr_fields()
+                cards[card_type][key] = value
 
     def _add_cards_from_list(obj):
         for value in obj:
             if isinstance(value, (list, tuple)):
-                card_type = value[0].type
+                values = value
 
-                try:
-                    data = cards[card_type]
-                except KeyError:
-                    data = cards[card_type] = []
+                for value in values:
+                    card_type = value.type
 
-                for _ in value:
-                    data.append(_.repr_fields())
+                    try:
+                        data = cards[card_type]
+                    except KeyError:
+                        data = cards[card_type] = []
+
+                    for _ in value:
+                        data.append(value)
 
             else:
                 card_type = value.type
 
                 try:
-                    cards[card_type].append(value.repr_fields())
+                    cards[card_type].append(value)
                 except KeyError:
-                    cards[card_type] = [value.repr_fields()]
+                    cards[card_type] = [value]
 
     attrs = [
         'nodes', 'coords', 'elements', 'properties', 'rigid_elements', 'plotels', 'masses', 'properties_mass',
@@ -92,12 +101,16 @@ if __name__ == '__main__':
     from pyNastran.bdf.bdf import BDF
 
     bdf = BDF()
-    bdf.read_bdf(r'file.bdf')
+    bdf.read_bdf(r'../new_bdf.bdf')
 
-    # cards = get_bdf_cards(bdf)
+    cards = get_bdf_cards(bdf)
 
-    # print(cards['CQUAD4'])
+    pbeam = cards['PBEAM'][200007]
 
-    print(bdf.properties[200007].repr_fields())
+    print(pbeam.repr_fields())
+
+    print(cards['MOMENT'])
+
+
 
 

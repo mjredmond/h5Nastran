@@ -10,4 +10,4 @@ from .._abstract_card import AbstractCard
 
 
 class ElementCard(AbstractCard):
-    pass
+    _id = 'EID'

@@ -41,24 +41,27 @@ class PshellTable(AbstractTable):
 
         ids = sorted(cards.keys())
 
+        def _get_val(val, default):
+            if val in ('', None):
+                return default
+            else:
+                return val
+
         for _id in ids:
-
             data = cards[_id]
+            """:type data: pyNastran.bdf.cards.properties.shell.PSHELL"""
 
-            def _get_val(val, default):
-                return default if val in (None, '') else val
-
-            table_row['PID'] = data[1]
-            table_row['MID1'] = _get_val(data[2], -1)
-            table_row['T'] = _get_val(data[3], np.nan)
-            table_row['MID2'] = _get_val(data[4], -1)
-            table_row['I'] = _get_val(data[5], 1.)
-            table_row['MID3'] = _get_val(data[6], -1)
-            table_row['TST'] = _get_val(data[7], 0.833333)
-            table_row['NSM'] = _get_val(data[8], 0.)
-            table_row['Z1'] = _get_val(data[9], 0.)
-            table_row['Z2'] = _get_val(data[10], 0.)
-            table_row['MID4'] = _get_val(data[11], -1)
+            table_row['PID'] = data.pid
+            table_row['MID1'] = data.mid1
+            table_row['T'] = data.t
+            table_row['MID2'] = _get_val(data.mid2, -1)
+            table_row['I'] = _get_val(data.twelveIt3, np.nan)
+            table_row['MID3'] = _get_val(data.mid3, -1)
+            table_row['TST'] = _get_val(data.tst, np.nan)
+            table_row['NSM'] = _get_val(data.nsm, np.nan)
+            table_row['Z1'] = _get_val(data.z1, np.nan)
+            table_row['Z2'] = _get_val(data.z2, np.nan)
+            table_row['MID4'] = _get_val(data.mid4, -1)
 
             table_row['DOMAIN_ID'] = domain
 

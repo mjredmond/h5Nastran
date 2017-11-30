@@ -4,6 +4,7 @@ from six.moves import range
 
 from mrF06 import F06Reader
 from nastran_database import NastranDatabase
+from mrNastran.bdf_data import BDFData
 
 import re
 
@@ -15,8 +16,15 @@ bdffile = r'file.bdf'
 
 # f.read()
 
-db = NastranDatabase('test.h5', 'w')
-db.load_bdf(bdffile)
+# db = NastranDatabase('test.h5', 'w')
+# db.load_bdf(bdffile)
+
+bdf = BDFData()
+bdf.read_h5('test.h5')
+
+print(bdf.load.force.data)
+
+
 
 
 # db.load_f06(filename)

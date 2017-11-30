@@ -45,45 +45,30 @@ class CbeamTable(AbstractTable):
 
         for eid in eids:
             data = cards[eid]
+            """:type data: pyNastran.bdf.cards.elements.beam.CBEAM"""
 
-            def _get_val(val, default):
-                return default if val in (None, '') else val
+            table_row['EID'] = data.eid
+            table_row['PID'] = data.pid
+            table_row['GRID'] = data.node_ids
 
-            table_row['EID'] = data[1]
-            table_row['PID'] = _get_val(data[2], data[1])
-            table_row['GRID'] = data[3:5]
-
-            tmp = data[5:8]
-
-            if tmp.count(None) == 3:
-                table_row['G0'] = data[3]
-                table_row['X'] = 0.
-            elif isinstance(data[5], int):
-                table_row['G0'] = data[5]
-            else:
+            if data.g0 is None:
+                table_row['X'] = data.x
                 table_row['G0'] = -1
-                table_row['X'] = data[5:8]
-
-            offt_bit = _get_val(data[8], 0.)
-
-            if isinstance(offt_bit, float):
-                table_row['BIT'] = offt_bit
-                table_row['OFFT'] = ''
             else:
-                table_row['OFFT'] = offt_bit
-                table_row['BIT'] = np.nan
+                table_row['G0'] = data.g0
+                table_row['X'] = 0.
 
-            table_row['PA'] = _get_val(data[9], 0)
-            table_row['PB'] = _get_val(data[10], 0)
+            table_row['BIT'] = data.bit
+            table_row['OFFT'] = data.offt
 
-            wa = (_get_val(data[11], 0.), _get_val(data[12], 0.), _get_val(data[13], 0.))
-            wb = (_get_val(data[14], 0.), _get_val(data[15], 0.), _get_val(data[16], 0.))
+            table_row['PA'] = data.pa
+            table_row['PB'] = data.pb
 
-            table_row['WA'] = wa
-            table_row['WB'] = wb
+            table_row['WA'] = data.wa
+            table_row['WB'] = data.wb
 
-            table_row['SA'] = _get_val(data[17], 0)
-            table_row['SB'] = _get_val(data[18], 0)
+            table_row['SA'] = data.sa
+            table_row['SB'] = data.sb
 
             table_row['DOMAIN_ID'] = domain
 
@@ -95,4 +80,3 @@ class CbeamTable(AbstractTable):
 class CBEAM(ElementCard):
     table_reader = CbeamTable
     dtype = table_reader.dtype
-    _id = 'EID'

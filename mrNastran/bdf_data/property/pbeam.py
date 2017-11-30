@@ -16,7 +16,7 @@ class PbeamTable(AbstractTable):
     table_id = 'PBEAM'
     table_path = '%s/%s' % (group, table_id)
     identity_path = '%s/IDENTITY' % table_path
-    stress_recovery_path = '%s/STRESS_RECOVERY' % table_path
+    data_path = '%s/DATA' % table_path
 
     dtype = np.dtype([
         ('PID', np.int64),
@@ -37,8 +37,8 @@ class PbeamTable(AbstractTable):
         ('N2A', np.float64),
         ('N1B', np.float64),
         ('N2B', np.float64),
-        ('STRESS_RECOVERY_LEN', np.int64),
-        ('STRESS_RECOVERY_POS', np.int64),
+        ('DATA_LEN', np.int64),
+        ('DATA_POS', np.int64),
         ('DOMAIN_ID', np.int64)
     ])
 
@@ -73,7 +73,7 @@ class PbeamTable(AbstractTable):
             h5f.create_table(cls.table_path, 'IDENTITY', cls.Format, 'IDENTITY',
                                     expectedrows=expected_rows, createparents=True)
 
-            h5f.create_table(cls.table_path, 'STRESS_RECOVERY', cls.FormatSr, 'STRESS_RECOVERY',
+            h5f.create_table(cls.table_path, 'DATA', cls.FormatSr, 'DATA',
                                     expectedrows=expected_rows, createparents=True)
 
             return h5f.get_node(cls.table_path)
@@ -82,7 +82,7 @@ class PbeamTable(AbstractTable):
     def _write_data(cls, h5f, cards, h5table):
 
         identity_row = h5table.IDENTITY.row
-        stress_recovery = h5table.STRESS_RECOVERY
+        stress_recovery = h5table.DATA
 
         domain = cls.domain_count
 
@@ -90,121 +90,36 @@ class PbeamTable(AbstractTable):
 
         stress_recovery_pos = 0
 
-        _sr_data = np.zeros(1, dtype=cls.dtype_sr)
-        sr_data = _sr_data[0]
-
-        comp = ['K1', 'K2', 'S1', 'S2', 'NSIA', 'NSIB', 'CWA', 'CWB', 'M1A', 'M2A',
-                'M1B', 'M2B', 'N1A', 'N2A', 'N1B', 'N2B']
-
-        comp_sr = ['SO', 'X_XB', 'A', 'I1', 'I2', 'I12', 'J', 'NSM', 'C1', 'C2', 'D1', 'D2',
-                'E1', 'E2', 'F1', 'F2']
-
-        # print(ids)
+        names = cls.dtype.names
 
         for _id in ids:
-
             data = cards[_id]
+            """:type data: pyNastran.bdf.cards.properties.beam.PBEAM"""
 
-            def _get_val(val, default):
-                return default if val in (None, '') else val
+            for i in range(len(names)-3):
+                name = str(names[i])
+                identity_row[names[i]] = getattr(data, name.lower())
 
-            # print(data_i)
+            sr_data = np.zeros(data.so.shape[0], dtype=cls.dtype_sr)
+            sr_data['SO'] = data.so
+            sr_data['X_XB'] = data.xxb
+            sr_data['C1'] = data.c1
+            sr_data['C2'] = data.c2
+            sr_data['D1'] = data.d1
+            sr_data['D2'] = data.d2
+            sr_data['E1'] = data.e1
+            sr_data['E2'] = data.e2
+            sr_data['F1'] = data.f1
+            sr_data['F2'] = data.f2
 
-            identity_row['PID'] = data[1]
-            identity_row['MID'] = _get_val(data[2], -1)
-
-            sr_data['A'] = _get_val(data[3], 0.)
-            sr_data['I1'] = _get_val(data[4], 0.)
-            sr_data['I2'] = _get_val(data[5], 0.)
-            sr_data['I12'] = _get_val(data[6], 0.)
-            sr_data['J'] = _get_val(data[7], 0.)
-            sr_data['NSM'] = _get_val(data[8], 0.)
-
-            next_data = _get_val(data[9], None)
-
-            if isinstance(next_data, float) or next_data is None:
-                sr_data['SO'] = b'YES'
-                sr_data['X_XB'] = 0.
-                sr_data['C1'] = _get_val(next_data, 0.)
-                sr_data['C2'] = _get_val(data[10], 0.)
-                sr_data['D1'] = _get_val(data[11], 0.)
-                sr_data['D2'] = _get_val(data[12], 0.)
-                sr_data['E1'] = _get_val(data[13], 0.)
-                sr_data['E2'] = _get_val(data[14], 0.)
-                sr_data['F1'] = _get_val(data[15], 0.)
-                sr_data['F2'] = _get_val(data[16], 0.)
-                next_i = 17
-            else:
-                sr_data['SO'] = b'NO'
-                sr_data['X_XB'] = 0.
-                sr_data['C1'] = 0.
-                sr_data['C2'] = 0.
-                sr_data['D1'] = 0.
-                sr_data['D2'] = 0.
-                sr_data['E1'] = 0.
-                sr_data['E2'] = 0.
-                sr_data['F1'] = 0.
-                sr_data['F2'] = 0.
-                next_i = 9
-
-            stress_recovery_data = [sr_data.tolist()]
-
-            last_i = len(data) - 1
-
-            sr_indices = []
-
-            i = next_i
-
-            while True:
-                first_data = _get_val(data[i], None)
-
-                if isinstance(first_data, float):
-                    break
-
-                if first_data in ('YES', None):
-                    sr_indices.append((i, 16))
-                    i += 16
-                else:
-                    sr_indices.append((i, 8))
-                    i += 8
-
-                if i > last_i:
-                    break
-
-            for indices in sr_indices:
-                i1 = indices[0]
-                data_len = indices[1]
-
-                _sr_data = np.zeros(1, dtype=cls.dtype_sr)
-                sr_data = _sr_data[0]
-
-                # print(i1)
-
-                sr_data['SO'] = data[i1].encode()
-
-                _i = 1
-                for j in range(i1 + 1, i1 + data_len):
-                    sr_data[comp_sr[_i]] = _get_val(data[j], 0.)
-                    _i += 1
-
-                stress_recovery_data.append(sr_data.tolist())
-
-            i_ = 0
-            for i in range(i, i + 16):
-                _comp = comp[i_]
-                i_ += 1
-                identity_row[_comp] = _get_val(data[i], 0.)
-
-            identity_row['STRESS_RECOVERY_LEN'] = len(stress_recovery_data)
-            identity_row['STRESS_RECOVERY_POS'] = stress_recovery_pos
+            identity_row['DATA_LEN'] = sr_data.shape[0]
+            identity_row['DATA_POS'] = stress_recovery_pos
 
             identity_row['DOMAIN_ID'] = domain
             identity_row.append()
 
-            stress_recovery_pos += len(stress_recovery_data)
-
-            for i in range(len(stress_recovery_data)):
-                stress_recovery.append([stress_recovery_data[i]])
+            stress_recovery_pos += sr_data.shape[0]
+            stress_recovery.append(sr_data)
 
         h5f.flush()
 
@@ -216,7 +131,7 @@ class PbeamTable(AbstractTable):
             return None, None
 
         identity = group.IDENTITY
-        stress_recovery = group.STRESS_RECOVERY
+        stress_recovery = group.DATA
 
         return identity.read(), stress_recovery.read()
 

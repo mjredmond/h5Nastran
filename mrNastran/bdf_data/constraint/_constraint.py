@@ -7,14 +7,13 @@ import numpy as np
 from .._abstract_card import AbstractCard
 
 
-class PropertyCard(AbstractCard):
+class ConstraintCard(AbstractCard):
     table_reader = None
     dtype = None
     """:type: np.dtype"""
-    _id = 'PID'
 
     def __init__(self, bdf_data):
-        super(PropertyCard, self).__init__(bdf_data)
+        super(ConstraintCard, self).__init__(bdf_data)
 
     def read_h5(self, h5f):
         data = self.table_reader.read(h5f)

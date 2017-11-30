@@ -39,15 +39,13 @@ class Cord2Table(AbstractTable):
 
         for _id in ids:
             data = cards[_id]
+            """:type data: pyNastran.bdf.cards.coordinate_systems.Cord2x"""
 
-            def _get_val(val, default):
-                return default if val in (None, '') else val
-
-            table_row['CID'] = data[1]
-            table_row['RID'] = _get_val(data[2], 0)
-            table_row['A'] = data[3:6]
-            table_row['B'] = data[6:9]
-            table_row['C'] = data[9:12]
+            table_row['CID'] = data.cid
+            table_row['RID'] = data.rid
+            table_row['A'] = data.e1
+            table_row['B'] = data.e2
+            table_row['C'] = data.e3
             table_row['DOMAIN_ID'] = domain
 
             table_row.append()

@@ -6,7 +6,7 @@ import numpy as np
 import tables
 
 from .._abstract_table import AbstractTable
-from .._abstract_card import AbstractCard
+from ._node import NodeCard
 
 
 class GridTable(AbstractTable):
@@ -34,18 +34,21 @@ class GridTable(AbstractTable):
 
         ids = sorted(cards.keys())
 
+        def _get_val(val):
+            if val == '':
+                return -1
+            return int(val)
+
         for _id in ids:
             data = cards[_id]
+            """:type data: pyNastran.bdf.cards.nodes.GRID"""
 
-            def _get_val(data_):
-                return 0 if data_ in (None, '') else data_
-
-            table_row['ID'] = data[1]
-            table_row['CP'] = _get_val(data[2])
-            table_row['X'] = data[3], data[4], data[5]
-            table_row['CD'] = _get_val(data[6])
-            table_row['PS'] = _get_val(data[7])
-            table_row['SEID'] = _get_val(data[8])
+            table_row['ID'] = data.nid
+            table_row['CP'] = data.cp
+            table_row['X'] = data.xyz
+            table_row['CD'] = data.cd
+            table_row['PS'] = _get_val(data.ps)
+            table_row['SEID'] = data.seid
             table_row['DOMAIN_ID'] = domain
 
             table_row.append()
@@ -53,8 +56,6 @@ class GridTable(AbstractTable):
         h5f.flush()
 
 
-class GRID(AbstractCard):
-    card_type = 'GRID'
+class GRID(NodeCard):
     table_reader = GridTable
     dtype = GridTable.dtype
-    _id = 'ID'
