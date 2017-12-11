@@ -52,7 +52,24 @@ class Typedef(object):
         for field in self.fields:
             dtypes.append(field.to_dtype())
 
-        return np.dtype(dtypes)
+        return dtypes
+
+
+def make_class(name, path, dtype, subtables=None, is_subtable=False):
+    class_lines = [
+        "class %s(object):" % name,
+        "    name = '%s'" % name,
+        "    path = '%s'" % path,
+        "    dtype = %s" % str(dtype),
+        "    is_subtable = %s" % str(is_subtable)
+    ]
+
+    if subtables is None:
+        subtables = []
+
+    class_lines.append('    subtables = %s' % str(subtables))
+
+    return '\n'.join(class_lines)
 
 
 class Group(object):
@@ -76,6 +93,9 @@ class Group(object):
 
         return parent_path + [self.name]
 
+    def path_str(self):
+        return '/'.join(self.path())
+
     def __getitem__(self, item):
         return self.children[item]
 
@@ -84,6 +104,41 @@ class Group(object):
 
     def is_multitable(self):
         return 'IDENTITY' in self.children
+
+    def make_class(self, prefix='', is_subtable=False):
+        prefix = ''
+
+        class_lines = []
+
+        if self.is_multitable():
+            prefix = prefix + self.name + '_'
+            subtable_names = list(self.children.keys())
+            subtable_names.remove('IDENTITY')
+            children = list(itervalues(self.children))
+            _subtables = [child.path_str() for child in children]
+            subtables = []
+            for sub in _subtables:
+                if 'IDENTITY' not in sub:
+                    subtables.append(sub)
+
+            for subtable in subtable_names:
+                _class_lines = self.children[subtable].make_class(prefix, is_subtable=True)
+                if isinstance(_class_lines, str):
+                    class_lines.append(_class_lines)
+                else:
+                    class_lines.extend(_class_lines)
+
+            class_lines.append(self.children['IDENTITY'].make_class(prefix, subtables=subtables))
+
+        else:
+            for child in itervalues(self.children):
+                _class_lines = child.make_class(prefix)
+                if isinstance(_class_lines, str):
+                    class_lines.append(_class_lines)
+                else:
+                    class_lines.extend(_class_lines)
+
+        return class_lines
 
 
 class Dataset(Typedef):
@@ -101,6 +156,13 @@ class Dataset(Typedef):
             parent_path = []
 
         return parent_path + [self.name]
+
+    def path_str(self):
+        return '/'.join(self.path())
+
+    def make_class(self, prefix='', subtables=None, is_subtable=False):
+        prefix = ''
+        return make_class(prefix + self.name, '/'.join(self.path()[:-1]), self.to_dtype(), subtables=subtables, is_subtable=is_subtable)
 
 
 def get_field(data):
@@ -199,4 +261,28 @@ print(group.path())
 print(group.children)
 
 print(group['IDENTITY'].to_dtype())
+
+class_lines = groups.make_class()
+
+lines = [
+    'from collections import OrderedDict',
+    '',
+    'data_tables = OrderedDict()',
+    '',
+    'def register_table(table):',
+    '    table_id = table.path + "/" + table.name',
+    '    data_tables[table_id] = table',
+    '    return table',
+    '',
+    '',
+    '@register_table'
+]
+
+lines.append('\n\n\n@register_table\n'.join(class_lines))
+
+
+classes = '\n'.join(lines)
+
+with open('msc_datatypes_classes.py', 'w') as f:
+    f.write(classes)
 
