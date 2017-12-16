@@ -1,2 +1,0 @@
-
-from .constraint import Constraint
