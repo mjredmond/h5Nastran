@@ -6,7 +6,7 @@ Example:
 ```python
 from h5Nastran import H5Nastran
 
-db = H5Nastran('db.h5', 'w)
+db = H5Nastran('db.h5', 'w')
 db.load_bdf('some.bdf')
 db.load_punch('some.pch')
 
