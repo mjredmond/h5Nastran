@@ -490,7 +490,7 @@ class TableDef(object):
             return self.h5f.get_node(self.path())
         except tables.NoSuchNodeError:
             try:
-                self.h5f.create_table(self.group, self.table_id, self.Format, self.table_id,
+                self.h5f.create_table(self.group, self.table_id, self.Format, self.results_type,
                                         expectedrows=expected_rows, createparents=True)
             except tables.FileModeError:
                 return None
@@ -694,3 +694,11 @@ class ResultTable(object):
 
     def search(self, domains, data_ids, filter=None):
         return self._table_def.search(domains, data_ids, filter)
+
+    @property
+    def results_type(self):
+        return self._table_def.results_type
+
+    @results_type.setter
+    def results_type(self, value):
+        self._table_def.results_type = value
