@@ -45,6 +45,9 @@ class H5Nastran(object):
         if mode == 'w':
             self._write_info()
 
+    def close(self):
+        self.h5f.close()
+
     def load_bdf(self, filename=None):
         if self._bdf is not None:
             raise Exception('BDF already loaded!')
@@ -141,8 +144,13 @@ class H5Nastran(object):
         self._card_tables[card_table.card_id] = card_table
 
     def register_result_table(self, result_table):
-        assert result_table.result_type not in self._result_tables
-        self._result_tables[result_table.result_type] = result_table
+        result_type = result_table.result_type
+        if isinstance(result_type, str):
+            result_type = [result_type]
+
+        for _result_type in result_type:
+            assert _result_type not in self._result_tables
+            self._result_tables[_result_type] = result_table
 
     def _load_bdf(self):
         from zlib import decompress
@@ -170,10 +178,14 @@ class H5Nastran(object):
     def _load_result_table(self, table_data):
         print(table_data.header)
 
-        table = self._result_tables.get(table_data.header.results_type, None)
+        results_type = table_data.header.results_type
+
+        table = self._result_tables.get(results_type, None)
 
         if table is None:
             return self._unsupported_table(table_data)
+
+        table.results_type = results_type
 
         table.write_data(table_data)
 

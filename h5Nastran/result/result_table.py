@@ -208,7 +208,6 @@ class TableDef(object):
             indices = DataGetter(dtype)
         for _ in dtype:
             if isinstance(_[1], list):
-                print('converting dtype')
                 # need to convert dtype since pytables doesn't support nested dtypes
                 dtype, indices = _convert_dtype(dtype, indices)
                 break
@@ -280,7 +279,10 @@ class TableDef(object):
 
         self.index_id = index_id
 
-        self.results_type = results_type
+        try:
+            self.results_type = results_type[0]
+        except IndexError:
+            self.results_type = results_type
 
         if validator is None:
             validator = _validator
@@ -358,7 +360,7 @@ class TableDef(object):
 
         for domain in domains:
             try:
-                index_dict, offset = private_index_table[domain]
+                index_dict, offset = private_index_table[domain-1]
             except IndexError:
                 continue
 
@@ -456,7 +458,7 @@ class TableDef(object):
                 location, length, offset = identity[i]
 
                 try:
-                    private_index_table.append(_index_data[location])
+                    private_index_table.append((_index_data[location][0], offset))
                 except KeyError:
                     _data_dict = load_data_dict(data['ID'][location: location + length])
                     _index_data[location] = (_data_dict, offset)
@@ -469,7 +471,6 @@ class TableDef(object):
             return None, None
         h5f = self.h5f
         try:
-            print(self._private_index_path)
             identity = h5f.get_node(self._private_index_path + '/IDENTITY')
         except tables.NoSuchNodeError:
             identity = h5f.create_table(self._private_index_path, 'IDENTITY', self.PrivateIndexFormat, 'Private Index',
@@ -611,7 +612,7 @@ def serialize_data_dict(data_dict):
     return np.array(data)
 
 
-def load_data_dict(serialize_data):
+def load_data_dict(serialize_data, offset=0):
     data_dict = {}
 
     last_i = serialize_data.shape[0] - 1
@@ -623,7 +624,7 @@ def load_data_dict(serialize_data):
 
         _data = serialize_data[i + 2: i + 2 + data_len]
 
-        data_dict[data_id] = _data
+        data_dict[data_id] = _data + offset
 
         i += 2 + data_len
 

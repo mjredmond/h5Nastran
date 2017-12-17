@@ -38,6 +38,13 @@ class PunchHeaderData(object):
             self._subcase_id = line.split('=')[1].strip()
         elif line.startswith('$REAL OUTPUT'):
             self.real_output = True
+        # elif line.startswith('$ELEMENT TYPE'):
+        #     tmp = line[1:].split('=')
+        #     right = tmp[1].strip().split()
+        #     # TODO: needs to be done right
+        #     if len(right) == 3:
+        #         self.other['ELEMENT TYPE INFO'] = right[2]
+        #     self.other['ELEMENT TYPE'] = ' '.join(right[:2])
         elif '=' in line:
             tmp = line[1:].split('=')
             left = tmp[0].strip()

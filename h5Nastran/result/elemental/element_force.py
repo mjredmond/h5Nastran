@@ -83,7 +83,7 @@ class QUAD4(ResultTable):
     </dataset>
     """
 
-    result_type = 'ELEMENT FORCES 33 QUAD4 REAL OUTPUT'
+    result_type = ['ELEMENT FORCES 33 QUAD4 REAL OUTPUT', 'ELEMENT FORCES 33 QUAD4 MATERIAL REAL OUTPUT']
     table_def = TableDef.create('/NASTRAN/RESULT/ELEMENTAL/ELEMENT_FORCE/QUAD4', result_type)
 
 ########################################################################################################################
@@ -144,5 +144,5 @@ class TRIA3(ResultTable):
     </dataset>
     """
 
-    result_type = 'ELEMENT FORCES 74 TRIA3 REAL OUTPUT'
+    result_type = ['ELEMENT FORCES 74 TRIA3 REAL OUTPUT', 'ELEMENT FORCES 74 TRIA3 MATERIAL REAL OUTPUT']
     table_def = TableDef.create('/NASTRAN/RESULT/ELEMENTAL/ELEMENT_FORCE/TRIA3', result_type)

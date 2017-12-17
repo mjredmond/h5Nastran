@@ -350,6 +350,8 @@ class CardTable(object):
             _get_subtable_data(subtable)
 
     def __getattr__(self, item):
+        if len(self.data) == 0:
+            self.read()
         try:
             return self.data[item]
         except KeyError:

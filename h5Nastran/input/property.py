@@ -263,6 +263,7 @@ class PCOMP(CardTable):
         # TODO: PCOMP - why is SOUT an integer????
 
         _ft = {
+            None: 0,
             '': 0,
             'HILL': 1,
             'HOFF': 2,
