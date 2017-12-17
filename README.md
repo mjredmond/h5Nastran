@@ -1,6 +1,4 @@
-This repository will be renamed to h5Nastran in the near future.
-
-h5Nastran is a python package that deals with the MSC.Nastran h5 file format.  It uses pyNastran to convert bdf files to the h5 format, and has a standalone punch and f06 results reader to convert to the h5 format.  Results tables are easily searchable.
+h5Nastran is a python package that deals with the MSC.Nastran h5 file format (2018 version).  It uses pyNastran to convert bdf files to the h5 format, and has a standalone punch and f06 results reader to convert to the h5 format.  Results tables are easily searchable.
 
 Example:
 ```python
